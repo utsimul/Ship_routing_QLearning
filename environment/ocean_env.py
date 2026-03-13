@@ -1,25 +1,18 @@
 import numpy as np
 
 
-ACTIONS = {
-    0: (-1, 0),   # N
-    1: (-1, 1),   # NE
-    2: (0, 1),    # E
-    3: (1, 1),    # SE
-    4: (1, 0),    # S
-    5: (1, -1),   # SW
-    6: (0, -1),   # W
-    7: (-1, -1)   # NW
-}
-
-
 class OceanEnvironment:
 
-    def __init__(self, world):
+    def __init__(self, world, step_scale=1.0):
 
         self.world = world
         self.ship_position = None
         self.goal_position = None
+
+        # step size based on world resolution (pre decided)
+        self.lat_step = world.resolution * step_scale
+        self.lon_step = world.resolution * step_scale
+
 
     def reset(self):
 
@@ -28,83 +21,76 @@ class OceanEnvironment:
         start = ocean_cells[np.random.choice(len(ocean_cells))]
         goal = ocean_cells[np.random.choice(len(ocean_cells))]
 
-        self.ship_position = tuple(start)
-        self.goal_position = tuple(goal)
+        start_lat, start_lon = self.world.get_coordinates(*start)
+        goal_lat, goal_lon = self.world.get_coordinates(*goal)
+
+        self.ship_position = (start_lat, start_lon)
+        self.goal_position = (goal_lat, goal_lon)
 
         return self.ship_position
 
 
     def set_pos(self, start, goal):
 
-        self.ship_position = tuple(start)
-        self.goal_position = tuple(goal)
+        self.ship_position = start
+        self.goal_position = goal
 
         return self.ship_position
 
 
-    def step(self, action):
+    def latlon_to_grid(self, lat, lon):
 
-        dx, dy = ACTIONS[action]
+        i = int((lat - self.world.lat_min) / self.world.resolution)
+        j = int((lon - self.world.lon_min) / self.world.resolution)
 
-        x, y = self.ship_position
+        i = np.clip(i, 0, self.world.height - 1)
+        j = np.clip(j, 0, self.world.width - 1)
 
-        while True:
-            new_x = x + dx
-            new_y = y + dy
+        return i, j
 
-            # clipping to keep inside grid
-            new_x = np.clip(new_x, 0, self.world.height - 1)
-            new_y = np.clip(new_y, 0, self.world.width - 1)
 
-            diagonal_move = abs(dx) + abs(dy) == 2
+    def step(self, theta):
 
-            # diagonal corner correction / corner cutting avoidance
-            if diagonal_move:
+        lat, lon = self.ship_position
 
-                adj1 = (x + dx, y)
-                adj2 = (x, y + dy)
+        # action now yields continuous values of theta that the ship moves in -> also we assume 
+        # that the distance the ship should move in is part of the state (like the agent can't decide that)
+        #the agent just tells the direction the ship should move in -> and it inherently KNOWS that the agent 
+        #will probably do this much based on the previous history of speeds. 
+        #agent just outputs the direction component of velocity - ship decides the magnitude.
+        new_lat = lat + self.lat_step * np.cos(theta)
+        new_lon = lon + self.lon_step * np.sin(theta)
 
-                adj1_land = (
-                    0 <= adj1[0] < self.world.height and
-                    0 <= adj1[1] < self.world.width and
-                    self.world.land_mask[adj1] == 1
-                )
+        # keep inside bounds
+        new_lat = np.clip(new_lat, self.world.lat_min, self.world.lat_max)
+        new_lon = np.clip(new_lon, self.world.lon_min, self.world.lon_max)
 
-                adj2_land = (
-                    0 <= adj2[0] < self.world.height and
-                    0 <= adj2[1] < self.world.width and
-                    self.world.land_mask[adj2] == 1
-                )
+        grid_i, grid_j = self.latlon_to_grid(new_lat, new_lon)
 
-                if adj1_land and adj2_land:
-                    # block diagonal move
-                    new_x, new_y = x, y
-                else:
-                    break
-
-        # check terrain 
-        if self.world.land_mask[new_x, new_y] == 1:
+        # check land collision
+        if self.world.land_mask[grid_i, grid_j] == 1:
 
             reward = -100
             done = True
 
-        elif (new_x, new_y) == self.goal_position:
-
-            reward = 100
-            done = True
-
         else:
 
-            # movement cost
-            if diagonal_move:
-                step_cost = 1.41
+            goal_dist = np.sqrt(
+                (new_lat - self.goal_position[0])**2 +
+                (new_lon - self.goal_position[1])**2
+            )
+
+            if goal_dist < self.world.resolution:
+
+                reward = 100
+                done = True
+
             else:
-                step_cost = 1
 
-            reward = -step_cost
-            done = False
+                reward = -1
+                done = False
 
-        self.ship_position = (new_x, new_y)
+        self.ship_position = (new_lat, new_lon)
 
         return self.ship_position, reward, done
 
