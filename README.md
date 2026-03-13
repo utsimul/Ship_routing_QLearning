@@ -13,4 +13,4 @@ I have initialized the Q matrix with the weights arranged as per a linear space 
 
 ### Cases where this doesn't work (To rectify soon):
 
-Where there are land obstacles, the agent find reasons to get stuck (more distance towards ocean vs hitting the land) and thus cannot reach the goal state. 
+Where there are land obstacles, the agent find reasons to get stuck (more distance towards ocean vs hitting the land) and thus cannot reach the goal state
