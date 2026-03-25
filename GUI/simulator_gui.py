@@ -477,8 +477,8 @@ class WeatherMapGUI:
 
         self.running = True
         self.last_update = time.time()
-        self.update_interval = 0.05
-        self.simulation_speed = 1800
+        self.update_interval = 0.2
+        self.simulation_speed = 300
         self.simulated_time = datetime.now(timezone.utc)
 
         self.animation_time = 0.0

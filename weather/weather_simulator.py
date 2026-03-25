@@ -31,27 +31,32 @@ class WeatherSimulator:
         # self.world.wind_u = np.zeros((self.world.height, self.world.width))
         # self.world.wind_v = np.zeros((self.world.height, self.world.width))
 
-        # --- 1. RESET wind field (CRITICAL) ---
-        self.world.wind_u.fill(0.0)
-        self.world.wind_v.fill(0.0)
+        # --- 1. SMOOTH TEMPORAL EVOLUTION (CRITICAL FOR RL) ---
+        alpha = 0.9  # memory factor (0.8–0.98 good range)
+
+        prev_u = self.world.wind_u.copy()
+        prev_v = self.world.wind_v.copy()
+
+        new_u = np.zeros((H, W))
+        new_v = np.zeros((H, W))
 
         # --- 2. BASE WEATHER (should be vector field ideally) ---
         base = self.base_weather[self.time_index]
         base = self._resize_to_world(base)
 
         # If base is scalar → convert to weak background wind
-        self.world.wind_u += base * 0.5
-        self.world.wind_v += base * 0.3
+        new_u += base * 0.5
+        new_v += base * 0.3
 
         # --- 3. APPLY STORMS (MAIN PHYSICS) ---
         for storm in self.world.storm_data:
             si, sj = self.world.lat_lon_to_grid(storm['lat'], storm['lon'])
 
-            radius = storm['radius'] * 10   # scale to grid
+            radius = int(round(storm['radius']))
             intensity = storm['intensity'] * 5
 
             radius = int(round(storm['radius']))
-            
+
             for i in range(max(0, si - radius), min(H, si + radius)):
                 for j in range(max(0, sj - radius), min(W, sj + radius)):
 
@@ -63,19 +68,20 @@ class WeatherSimulator:
 
                         angle = np.arctan2(dy, dx)
 
-                        # Smooth decay
-                        strength = intensity * np.exp(-dist / radius)
+                        # Smooth decay - gaussian storms
+                        strength = intensity * np.exp(-(dist**2) / (2 * (radius**2)))
 
                         # Cyclonic rotation (important!)
                         self.world.wind_u[i, j] += -np.sin(angle) * strength
                         self.world.wind_v[i, j] +=  np.cos(angle) * strength
 
         # --- 4. ADD SMALL TURBULENCE ---
-        self.world.wind_u += np.random.normal(0, 0.05, (H, W))
-        self.world.wind_v += np.random.normal(0, 0.05, (H, W))
+        self.world.wind_u = alpha * prev_u + (1 - alpha) * new_u
+        self.world.wind_v = alpha * prev_v + (1 - alpha) * new_v
 
         # --- 5. TIME EVOLUTION ---
-        self.time_index = (self.time_index + 1) % len(self.base_weather)
+        if np.random.rand() < 0.2: 
+            self.time_index = (self.time_index + 1) % len(self.base_weather)
     
     def _spawn_storm(self):
         lat = np.random.uniform(self.world.min_lat, self.world.max_lat)
@@ -84,8 +90,8 @@ class WeatherSimulator:
         storm = {
             'lat': lat,
             'lon': lon,
-            'intensity': np.random.uniform(5, 15),   # controls wind strength
-            'radius': np.random.uniform(5, 15),      # influence area (grid units)
+            'intensity': np.random.uniform(1.5, 4.0),   # controls wind strength
+            'radius': np.random.uniform(2, 6),      # influence area (grid units)
         }
 
         self.world.storm_data.append(storm)
