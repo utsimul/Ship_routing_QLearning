@@ -1,3 +1,5 @@
+
+
 import pygame
 import math
 import random
@@ -147,7 +149,9 @@ class World:
         self.max_lat = 85
         self.min_lon = -180
         self.max_lon = 180
-        self.weather = np.zeros((height, width))
+        # self.weather = np.zeros((height, width))
+        self.wind_u = np.zeros((height, width))
+        self.wind_v = np.zeros((height, width))
         self.storm_data = []
 
     def lat_lon_to_screen(self, lat: float, lon: float) -> Tuple[int, int]:
@@ -216,12 +220,13 @@ class WeatherRenderer:
     def __init__(self):
         self.colormap = WEATHER_COLORMAP
 
-    def render_heatmap(self, weather_field: np.ndarray) -> pygame.Surface:
-        height, width = weather_field.shape
+    def render_heatmap(self, field: np.ndarray) -> pygame.Surface:
+        height, width = field.shape
         surface = pygame.Surface((width, height), pygame.SRCALPHA)
 
-        max_val = np.max(weather_field) if np.max(weather_field) > 0 else 1.0
-        normalized = weather_field / max_val
+        # Fixed normalization (important for RL consistency)
+        max_wind = 20.0
+        normalized = np.clip(field / max_wind, 0, 1)
 
         step = 3
         for i in range(0, height, step):
@@ -318,9 +323,16 @@ class InfoPanel:
 
         self._draw_legend(surface)
         self._draw_controls(surface)
+    
+    def classify_wind(speed):
+        if speed < 3: return "calm"
+        elif speed < 8: return "breeze"
+        elif speed < 15: return "windy"
+        else: return "storm"
 
     def _draw_city_info(self, surface: pygame.Surface, city: Dict, 
-                       weather_info: Dict, y_offset: int):
+                   weather_info: Dict, y_offset: int):
+
         name_text = self.font.render(city['name'], True, (255, 255, 200))
         surface.blit(name_text, (self.x + 15, y_offset))
 
@@ -329,25 +341,42 @@ class InfoPanel:
         surface.blit(coords_text, (self.x + 15, y_offset + 25))
 
         y_offset += 55
-        
-        condition = weather_info['condition']
-        value = weather_info['value']
-        
-        pygame.draw.rect(surface, (25, 35, 55), (self.x + 12, y_offset - 2, self.width - 24, 22))
-        gradient = WEATHER_GRADIENTS.get(condition, [(200, 200, 200)])
-        cond_text = self.font.render(condition.capitalize(), True, gradient[0])
-        surface.blit(cond_text, (self.x + 15, y_offset))
-        y_offset += 26
 
-        pygame.draw.rect(surface, (25, 35, 55), (self.x + 12, y_offset - 2, self.width - 24, 22))
-        val_text = self.font.render(f"Intensity: {value:.3f}", True, (180, 200, 220))
-        surface.blit(val_text, (self.x + 15, y_offset))
-        
+        speed = weather_info['speed']
+        direction = weather_info['direction']
+
+        # --- Wind Speed ---
+        speed_text = self.font.render(f"Wind: {speed:.2f} m/s", True, (180, 200, 220))
+        surface.blit(speed_text, (self.x + 15, y_offset))
+        y_offset += 25
+
+        # --- Direction ---
+        dir_text = self.font.render(f"Direction: {direction:.1f}°", True, (180, 200, 220))
+        surface.blit(dir_text, (self.x + 15, y_offset))
         y_offset += 30
-        
-        bar_width = int((self.width - 40) * min(1.0, value))
+
+        # --- Derived Label (optional but useful) ---
+        if speed < 3:
+            label = "Calm"
+        elif speed < 8:
+            label = "Breeze"
+        elif speed < 15:
+            label = "Windy"
+        else:
+            label = "Storm"
+
+        label_text = self.font.render(label, True, (200, 220, 255))
+        surface.blit(label_text, (self.x + 15, y_offset))
+        y_offset += 30
+
+        # --- Speed Bar ---
         pygame.draw.rect(surface, (40, 50, 70), (self.x + 15, y_offset, self.width - 40, 15))
-        color = WEATHER_COLORMAP[min(int(value * (len(WEATHER_COLORMAP) - 1)), len(WEATHER_COLORMAP) - 1)]
+
+        norm = min(speed / 20.0, 1.0)
+        bar_width = int((self.width - 40) * norm)
+
+        color = self.weather_renderer._value_to_color(norm)
+
         pygame.draw.rect(surface, color, (self.x + 15, y_offset, bar_width, 15))
         pygame.draw.rect(surface, (80, 100, 130), (self.x + 15, y_offset, self.width - 40, 15), 1)
 
@@ -514,7 +543,8 @@ class WeatherMapGUI:
         self.screen.fill(OCEAN_COLOR, (MAP_OFFSET_X - 5, MAP_OFFSET_Y - 5,
                                        MAP_WIDTH + 10, MAP_HEIGHT + 10))
 
-        heatmap_surface = self.weather_renderer.render_heatmap(self.world.weather)
+        wind_speed = np.sqrt(self.world.wind_u**2 + self.world.wind_v**2)
+        heatmap_surface = self.weather_renderer.render_heatmap(wind_speed) 
         self.screen.blit(heatmap_surface, (MAP_OFFSET_X, MAP_OFFSET_Y))
 
         for polygon in self.scaled_polygons:
@@ -568,35 +598,38 @@ class WeatherMapGUI:
         for city in CITY_DATABASE:
             x, y = self.world.lat_lon_to_screen(city['lat'], city['lon'])
             
-            weather_info = self.weather_simulator.get_weather_at_lat_lon(city['lat'], city['lon'])
-            condition = weather_info['condition']
-            value = weather_info['value']
+            weather_info = self.weather_simulator.get_weather_at_lat_lon(
+                city['lat'], city['lon']
+            )
 
-            gradient = WEATHER_GRADIENTS.get(condition, WEATHER_GRADIENTS['clear'])
+            speed = weather_info['speed']
+
+            # Normalize speed
+            norm = min(speed / 20.0, 1.0)
+
+            # Get color from heatmap scale
+            color = self.weather_renderer._value_to_color(norm)
+
             is_selected = (city == self.selected_city)
-
             base_radius = 14 if is_selected else 10
+
             pulse = math.sin(self.animation_time * 3) * 0.12 + 0.88
 
-            for i, color in enumerate(reversed(gradient)):
-                r = int((base_radius + (len(gradient) - i) * 3) * pulse)
-                alpha = int(70 - i * 18)
-                alpha_surface = pygame.Surface((r * 2, r * 2), pygame.SRCALPHA)
-                pygame.draw.circle(alpha_surface, (*color, alpha), (r, r), r)
-                self.screen.blit(alpha_surface, (x - r, y - r))
+            # Glow effect
+            for i in range(3):
+                r = int((base_radius + (3 - i) * 3) * pulse)
+                alpha = int(70 - i * 20)
 
-            pygame.draw.circle(self.screen, gradient[0], (x, y), base_radius)
+                glow_surface = pygame.Surface((r * 2, r * 2), pygame.SRCALPHA)
+                pygame.draw.circle(glow_surface, (*color, alpha), (r, r), r)
+                self.screen.blit(glow_surface, (x - r, y - r))
 
+            # Main circle
+            pygame.draw.circle(self.screen, color, (x, y), base_radius)
+
+            # Selection highlight
             if is_selected:
                 pygame.draw.circle(self.screen, (255, 255, 255), (x, y), base_radius + 2, 2)
-                angle_offset = self.animation_time * 80
-                for i in range(4):
-                    angle = math.radians(i * 90 + angle_offset)
-                    px = x + math.cos(angle) * (base_radius + 6)
-                    py = y + math.sin(angle) * (base_radius + 6)
-                    pygame.draw.circle(self.screen, (255, 255, 200), (int(px), int(py)), 2)
-
-            self._draw_mini_icon(x, y, condition, base_radius)
 
     def _draw_mini_icon(self, x: int, y: int, condition: str, radius: int):
         size = max(3, radius // 3)
