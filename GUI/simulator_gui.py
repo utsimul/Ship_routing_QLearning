@@ -266,7 +266,9 @@ class WeatherRenderer:
                 if r > 0:
                     alpha = int((90 - i * 15) * intensity)
                     color = (120, 50, 160, alpha)
-                    pygame.draw.circle(surface, color, (int(x), int(y)), r)
+                    circle_surface = pygame.Surface((r * 2, r * 2), pygame.SRCALPHA)
+                    pygame.draw.circle(circle_surface, (120, 50, 160), (r, r), r)
+                    surface.blit(circle_surface, (int(x - r), int(y - r)))
                     
             for i in range(8):
                 angle = math.radians(i * 45 + time_val * 60)
@@ -276,7 +278,7 @@ class WeatherRenderer:
                 y1 = int(y + math.sin(angle) * inner_r)
                 x2 = int(x + math.cos(angle) * outer_r)
                 y2 = int(y + math.sin(angle) * outer_r)
-                pygame.draw.line(surface, (160, 80, 200, int(60 * intensity)), (x1, y1), (x2, y2), 2)
+                pygame.draw.line(surface, (160, 80, 200), (x1, y1), (x2, y2), 2)
 
         return surface
 

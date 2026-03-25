@@ -28,6 +28,9 @@ class WeatherSimulator:
 
         H, W = self.world.height, self.world.width
 
+        # self.world.wind_u = np.zeros((self.world.height, self.world.width))
+        # self.world.wind_v = np.zeros((self.world.height, self.world.width))
+
         # --- 1. RESET wind field (CRITICAL) ---
         self.world.wind_u.fill(0.0)
         self.world.wind_v.fill(0.0)
@@ -47,6 +50,8 @@ class WeatherSimulator:
             radius = storm['radius'] * 10   # scale to grid
             intensity = storm['intensity'] * 5
 
+            radius = int(round(storm['radius']))
+            
             for i in range(max(0, si - radius), min(H, si + radius)):
                 for j in range(max(0, sj - radius), min(W, sj + radius)):
 
@@ -71,6 +76,19 @@ class WeatherSimulator:
 
         # --- 5. TIME EVOLUTION ---
         self.time_index = (self.time_index + 1) % len(self.base_weather)
+    
+    def _spawn_storm(self):
+        lat = np.random.uniform(self.world.min_lat, self.world.max_lat)
+        lon = np.random.uniform(self.world.min_lon, self.world.max_lon)
+
+        storm = {
+            'lat': lat,
+            'lon': lon,
+            'intensity': np.random.uniform(5, 15),   # controls wind strength
+            'radius': np.random.uniform(5, 15),      # influence area (grid units)
+        }
+
+        self.world.storm_data.append(storm)
 
     def _resize_to_world(self, base):
 
