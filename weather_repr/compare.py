@@ -1,14 +1,14 @@
 from weather.weather_simulator import WeatherSimulator
-from weather_repr.plot_weather import plot_weather
+from weather_repr.plot_weather import *
 import matplotlib.pyplot as plt
 from environment.world_generator import WorldGrid
 import numpy as np
+from weather_repr.pool import *
 
 
 if __name__ == "__main__":
 
     print("compare function")
-    # --- CREATE WORLD ---
     world = WorldGrid(
         lat_min=-60,
         lat_max=60,
@@ -17,22 +17,20 @@ if __name__ == "__main__":
         resolution=2.0
     )
 
-    # --- INIT WIND ARRAYS ---
     world.wind_u = np.zeros((world.height, world.width))
     world.wind_v = np.zeros((world.height, world.width))
 
-    # --- ADD STORMS ---
     world.storm_data = [
         {"lat": 20, "lon": 70, "intensity": 3, "radius": 5},
         {"lat": -10, "lon": 120, "intensity": 2, "radius": 4}
     ]
 
-    # --- INIT SIMULATOR ---
     sim = WeatherSimulator(world)
 
-    # --- RUN SIMULATION ---
     for _ in range(5):
         sim.update()
 
-    # --- PLOT ---
     plot_weather(world)
+
+    pyramid = get_global_weather_representation(world)
+    visualize_full_pyramid(pyramid, scales=[20, 10, 5])
