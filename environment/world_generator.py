@@ -32,3 +32,13 @@ class WorldGrid:
 
     def shape(self):
         return (self.height, self.width)
+    
+    def lat_lon_to_grid(self, lat, lon):
+        i = int((lat - self.lat_min) / self.resolution)
+        j = int((lon - self.lon_min) / self.resolution)
+
+        i = np.clip(i, 0, self.height - 1)
+        j = np.clip(j, 0, self.width - 1)
+
+        return i, j
+        
