@@ -32,5 +32,15 @@ if __name__ == "__main__":
 
     plot_weather(world)
 
-    pyramid = get_global_weather_representation(world)
-    visualize_full_pyramid(pyramid, scales=[20, 10, 5])
+    # pyramid = build_vector_pyramid(
+    #     world.wind_u, world.wind_v,
+    #     scales=[20, 10, 5]
+    # )
+    # for i, level in enumerate(pyramid):
+    #     print(f"Level {i} shape: {level.shape}")
+    # visualize_full_pyramid(pyramid, scales=[20, 10, 5])
+
+    agent_lat = 20
+    agent_lon = 70
+
+    plot_agent_view(world, agent_lat, agent_lon)
