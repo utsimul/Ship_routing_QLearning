@@ -27,6 +27,8 @@ class WorldGrid:
         #weather and land_mask both have index - meaning that they are location specific. 
         # #For example, weather[i][j] gives the weather condition at the location corresponding to latitudes[i] and longitudes[j].
 
+        self.storm_data = []
+
     def get_coordinates(self, i, j):
         return self.lats[i], self.lons[j]
 
@@ -42,3 +44,4 @@ class WorldGrid:
 
         return i, j
         
+    

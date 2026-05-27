@@ -81,14 +81,14 @@ class WeatherSimulator:
             self.time_index = (self.time_index + 1) % len(self.base_weather)
     
     def _spawn_storm(self):
-        lat = np.random.uniform(self.world.min_lat, self.world.max_lat)
-        lon = np.random.uniform(self.world.min_lon, self.world.max_lon)
+        lat = np.random.uniform(self.world.lat_min, self.world.lat_max)
+        lon = np.random.uniform(self.world.lon_min, self.world.lon_max)
 
         storm = {
             'lat': lat,
             'lon': lon,
-            'intensity': np.random.uniform(1.5, 4.0),   # controls wind strength
-            'radius': np.random.uniform(1, 3),      # influence area (grid units)
+            'intensity': np.random.uniform(1.5, 4.0),
+            'radius': np.random.uniform(1, 3),
         }
 
         self.world.storm_data.append(storm)
@@ -103,15 +103,7 @@ class WeatherSimulator:
             ))
         )[:self.world.height, :self.world.width]
     
-    def lat_lon_to_grid(self, lat, lon):
-        i = int((lat - self.lat_min) / self.resolution)
-        j = int((lon - self.lon_min) / self.resolution)
-
-        i = np.clip(i, 0, self.height - 1)
-        j = np.clip(j, 0, self.width - 1)
-
-        return i, j
-        
+    
     def get_weather_at_lat_lon(self, lat, lon):
 
         i, j = self.world.lat_lon_to_grid(lat, lon)

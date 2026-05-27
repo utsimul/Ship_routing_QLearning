@@ -9,8 +9,7 @@ def get_radial_weather(world, lat, lon):
 
     H, W = world.height, world.width
 
-    samples_data = []
-    samples_coords = []
+    result = []
 
     radii = [3, 8, 15, 30]
 
@@ -20,24 +19,29 @@ def get_radial_weather(world, lat, lon):
         for k in range(num_points):
             angle = 2 * np.pi * k / num_points
 
-            i = int(ai + r * np.sin(angle))
+            i = int(ai + r * np.sin(angle)) #get the x and y points from radius and angle (get x,y from polar coordinates)
             j = int(aj + r * np.cos(angle))
 
             if 0 <= i < H and 0 <= j < W:
 
-                # --- wind ---
                 uu = u[i, j]
                 vv = v[i, j]
 
                 speed = np.sqrt(uu**2 + vv**2)
-                direction = np.arctan2(vv, uu)
+                wind_dir = np.arctan2(vv, uu)
 
-                # ✅ Option B (best)
-                encoded = [speed, np.sin(direction), np.cos(direction)]
+                # relative position
+                rel_angle = angle   # already relative to agent
+                distance = r
 
-                samples_data.append(encoded)
+                result.append([
+                    speed,
+                    np.sin(wind_dir),
+                    np.cos(wind_dir),
+                    distance,
+                    np.sin(rel_angle),
+                    np.cos(rel_angle)
+                ])
 
-                lat_pt, lon_pt = world.get_coordinates(i, j)
-                samples_coords.append((lat_pt, lon_pt, uu, vv))
+    return np.array(result)
 
-    return np.array(samples_data), samples_coords
