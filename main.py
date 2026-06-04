@@ -1,3 +1,5 @@
+# feed data to agent and obtain its outcome
+
 import numpy as np
 
 from environment.world_generator import WorldGrid
@@ -7,7 +9,10 @@ from weather.weather_simulator import WeatherSimulator
 
 from weather_repr.radial_snapshot import get_radial_weather
 
+from agent.random_agent import RandomAgent 
+
 import matplotlib.pyplot as plt
+
 
 def plot_episode(world, env, trajectory):
 
@@ -83,6 +88,8 @@ def main():
 
     print("World shape:", world.shape())
 
+    agent = RandomAgent()
+
 
     print("Generating land mask...")
 
@@ -110,57 +117,62 @@ def main():
 
 
     NUM_STEPS = 1000
+    NUM_EPISODES = 1
 
-    for step in range(NUM_STEPS):
+    for episode in range(NUM_EPISODES):
 
-
-        if np.random.rand() < 0.02:
-            weather._spawn_storm()
-
-        weather.update()
+        for step in range(NUM_STEPS):
 
 
+            if np.random.rand() < 0.02:
+                weather._spawn_storm()
 
-        ship_lat, ship_lon = env.ship_position
-
-        radial_weather = get_radial_weather(
-            world,
-            ship_lat,
-            ship_lon
-        )
+            weather.update()
 
 
 
-        theta = np.random.uniform(0, 2 * np.pi)
+            ship_lat, ship_lon = env.ship_position
 
-        next_state, reward, done = env.step(theta)
-        trajectory.append(env.ship_position)
-
-        print(
-            f"Step {step} | "
-            f"Reward {reward:.2f} | "
-            f"Position {next_state}"
-        )
-
-   
-
-        if done:
-
-            print("Episode finished")
-
-            plot_episode(
+            radial_weather = get_radial_weather(
                 world,
-                env,
-                trajectory
+                ship_lat,
+                ship_lon
             )
 
 
-            env.reset()
 
-            trajectory = [env.ship_position]
+            theta = agent.act(radial_weather)
 
-            print("New ship:", env.ship_position)
-            print("New goal:", env.goal_position)
+            next_state, reward, done = env.step(theta)
+            trajectory.append(env.ship_position)
+
+            print(
+                f"Step {step} | "
+                f"Reward {reward:.2f} | "
+                f"Position {next_state}"
+            )
+
+    
+
+            if done:
+
+                break
+        
+        print("Episode finished")
+
+        plot_episode(
+            world,
+            env,
+            trajectory
+        )
+
+
+        env.reset()
+
+        trajectory = [env.ship_position]
+
+        print("New ship:", env.ship_position)
+        print("New goal:", env.goal_position)
 
 
 
