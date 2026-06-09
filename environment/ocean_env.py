@@ -13,16 +13,16 @@ class OceanEnvironment:
         self.lat_step = world.resolution * step_scale
         self.lon_step = world.resolution * step_scale
 
+        ocean_cells = np.argwhere(self.world.land_mask == 0)
+
+        self.start = ocean_cells[np.random.choice(len(ocean_cells))] #here start and goal are defined
+        self.goal = ocean_cells[np.random.choice(len(ocean_cells))]
+
 
     def reset(self):
 
-        ocean_cells = np.argwhere(self.world.land_mask == 0)
-
-        start = ocean_cells[np.random.choice(len(ocean_cells))]
-        goal = ocean_cells[np.random.choice(len(ocean_cells))]
-
-        start_lat, start_lon = self.world.get_coordinates(*start)
-        goal_lat, goal_lon = self.world.get_coordinates(*goal)
+        start_lat, start_lon = self.world.get_coordinates(*self.start)
+        goal_lat, goal_lon = self.world.get_coordinates(*self.goal)
 
         self.ship_position = (start_lat, start_lon)
         self.goal_position = (goal_lat, goal_lon)
@@ -70,8 +70,10 @@ class OceanEnvironment:
         # check land collision
         if self.world.land_mask[grid_i, grid_j] == 1:
 
-            reward = -100
-            done = True
+            reward = -10
+            done = False
+
+            return self.ship_position, reward, done
 
         else:
 
