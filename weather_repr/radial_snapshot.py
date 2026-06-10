@@ -14,15 +14,21 @@ def get_radial_weather(world, lat, lon):
     radii = [3, 8, 15, 30]
 
     for r in radii:
+
         num_points = max(8, r * 2)
 
         for k in range(num_points):
+
             angle = 2 * np.pi * k / num_points
 
-            i = int(ai + r * np.sin(angle)) #get the x and y points from radius and angle (get x,y from polar coordinates)
-            j = int(aj + r * np.cos(angle))
+            i = int(round(ai + r * np.sin(angle)))
+            j = int(round(aj + r * np.cos(angle)))
 
-            if 0 <= i < H and 0 <= j < W:
+            # longitude wraps around globe
+            j = j % W
+
+            # latitude does not wrap
+            if 0 <= i < H:
 
                 uu = u[i, j]
                 vv = v[i, j]
@@ -30,18 +36,26 @@ def get_radial_weather(world, lat, lon):
                 speed = np.sqrt(uu**2 + vv**2)
                 wind_dir = np.arctan2(vv, uu)
 
-                # relative position
-                rel_angle = angle   # already relative to agent
-                distance = r
+            else:
+                # outside valid latitude range
+                speed = 0.0
+                wind_dir = 0.0
 
-                result.append([
-                    speed,
-                    np.sin(wind_dir),
-                    np.cos(wind_dir),
-                    distance,
-                    np.sin(rel_angle),
-                    np.cos(rel_angle)
-                ])
+            result.append([
+                speed,
+                np.sin(wind_dir),
+                np.cos(wind_dir),
+                float(r),
+                np.sin(angle),
+                np.cos(angle)
+            ])
 
-    return np.array(result)
+    return np.array(result, dtype=np.float32)
 
+"""
+dimensions are guarenteed because it pads out of bounds with zeros.
+radii = [3, 8, 15, 30]
+
+points =
+8 + 16 + 30 + 60
+= 114"""
