@@ -14,6 +14,62 @@ from agent.random_agent import RandomAgent
 import matplotlib.pyplot as plt
 
 
+EARTH_RADIUS_KM = 6371.0
+
+
+def geodesic_distance(lat1, lon1, lat2, lon2):
+    """
+    Haversine distance in km.
+    """
+
+    lat1 = np.radians(lat1)
+    lon1 = np.radians(lon1)
+
+    lat2 = np.radians(lat2)
+    lon2 = np.radians(lon2)
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = (
+        np.sin(dlat / 2) ** 2
+        + np.cos(lat1)
+        * np.cos(lat2)
+        * np.sin(dlon / 2) ** 2
+    )
+
+    c = 2 * np.arctan2(
+        np.sqrt(a),
+        np.sqrt(1 - a)
+    )
+
+    return EARTH_RADIUS_KM * c
+
+
+def bearing_to_goal(lat1, lon1, lat2, lon2):
+    """
+    Bearing from current position to goal.
+
+    Returns angle in radians.
+    """
+
+    lat1 = np.radians(lat1)
+    lat2 = np.radians(lat2)
+
+    dlon = np.radians(lon2 - lon1)
+
+    y = np.sin(dlon) * np.cos(lat2)
+
+    x = (
+        np.cos(lat1) * np.sin(lat2)
+        - np.sin(lat1)
+        * np.cos(lat2)
+        * np.cos(dlon)
+    )
+
+    return np.arctan2(y, x)
+
+
 def plot_episode(world, env, trajectory):
 
     plt.figure(figsize=(14, 7))
@@ -128,6 +184,7 @@ def main():
         rewards = []
 
         state = env.reset()
+        start_position = env.ship_position
 
         done = False
 
@@ -141,7 +198,52 @@ def main():
                 ship_lon
             )
 
-            theta = agent.act(radial_weather)
+            #CONSTRUCT STATE 
+            ship_lat, ship_lon = env.ship_position
+
+            goal_lat, goal_lon = env.goal_position
+
+            start_lat, start_lon = start_position
+
+
+            radial_weather = get_radial_weather(
+                world,
+                ship_lat,
+                ship_lon
+            )
+
+            dist_to_goal = geodesic_distance(
+                ship_lat,
+                ship_lon,
+                goal_lat,
+                goal_lon
+            )
+
+            dist_from_start = geodesic_distance(
+                start_lat,
+                start_lon,
+                ship_lat,
+                ship_lon
+            )
+
+            goal_direction = bearing_to_goal(
+                ship_lat,
+                ship_lon,
+                goal_lat,
+                goal_lon
+            )
+
+            agent_state = np.concatenate([
+                radial_weather.flatten(),
+                np.array([
+                    dist_to_goal,
+                    dist_from_start,
+                    np.sin(goal_direction), #encoded as sin to avoid wrapping issues
+                    np.cos(goal_direction)
+                ])
+            ])
+
+            theta = agent.act(agent_state)
 
             next_state, reward, done = env.step(theta)
             trajectory.append(env.ship_position)
