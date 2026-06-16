@@ -23,7 +23,7 @@ class PolicyNetwork(nn.Module):
             nn.Linear(128, 64),
             nn.ReLU(),
 
-            nn.Linear(64, 1)
+            nn.Linear(64, 2)
         )
 
     def forward(self, x):
@@ -44,7 +44,8 @@ class PolicyAgent:
         )
 
         with torch.no_grad():
-            theta = self.policy(state)
+            mean_theta, sigma = self.policy(state)
+            theta = torch.normal(mean_theta, sigma)
 
         theta = np.pi * torch.tanh(theta)
 

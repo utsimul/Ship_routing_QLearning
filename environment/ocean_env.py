@@ -52,6 +52,7 @@ class OceanEnvironment:
     def step(self, theta):
 
         lat, lon = self.ship_position
+        print("taking action in direction: ", theta)
 
         # action now yields continuous values of theta that the ship moves in -> also we assume 
         # that the distance the ship should move in is part of the state (like the agent can't decide that)
@@ -61,9 +62,12 @@ class OceanEnvironment:
         new_lat = lat + self.lat_step * np.cos(theta)
         new_lon = lon + self.lon_step * np.sin(theta)
 
+        print("BEFORE CLIPPING: ", new_lat, new_lon)
+
         # keep inside bounds
         new_lat = np.clip(new_lat, self.world.lat_min, self.world.lat_max)
         new_lon = np.clip(new_lon, self.world.lon_min, self.world.lon_max)
+        print("AFTER CLIPPING: ", new_lat, new_lon)
 
         grid_i, grid_j = self.latlon_to_grid(new_lat, new_lon)
 
@@ -73,6 +77,7 @@ class OceanEnvironment:
             reward = -10
             done = False
 
+            print("land collision at: ", (new_lat, new_lon))
             return self.ship_position, reward, done
 
         else:
@@ -93,6 +98,7 @@ class OceanEnvironment:
                 done = False
 
         self.ship_position = (new_lat, new_lon)
+        print("updated ship position")
 
         return self.ship_position, reward, done
 

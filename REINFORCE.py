@@ -1,5 +1,7 @@
 # feed data to agent and obtain its outcome
+#weather has to change after every timestep concurrently so we need to update environment after every step.
 
+#take action in another direction when there is random collision. 
 import numpy as np
 
 from environment.world_generator import WorldGrid
@@ -78,8 +80,6 @@ def main():
         done = False
 
         while not done:
-            
-            ship_lat, ship_lon = env.ship_position
 
 
             #CONSTRUCT STATE 
@@ -88,6 +88,7 @@ def main():
             goal_lat, goal_lon = env.goal_position
 
             start_lat, start_lon = start_position
+            print("current ship position: ", ship_lat, ship_lon)
 
 
             radial_weather = get_radial_weather(
@@ -95,6 +96,8 @@ def main():
                 ship_lat,
                 ship_lon
             )
+
+            print("radial weather first 5 values: ", radial_weather.flatten()[:5])
 
             dist_to_goal = geodesic_distance(
                 ship_lat,
@@ -132,7 +135,9 @@ def main():
                 ])
             ])
 
-            print("Agent state shape:", agent_state.shape)
+
+            #print("agent state min and max: ",np.min(agent_state), np.max(agent_state))
+            #print(agent_state[:10])
 
             theta = PAgent.act(agent_state)
 
