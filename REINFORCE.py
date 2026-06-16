@@ -1,4 +1,4 @@
-# feed data to agent and obtain its outcome
+#calculate formula for reward
 #weather has to change after every timestep concurrently so we need to update environment after every step.
 
 #take action in another direction when there is random collision. 
@@ -120,7 +120,7 @@ def main():
                 goal_lon
             )
 
-            #normalize values
+            #normalize values  
             dist_to_goal /= 20000.0
             dist_from_start /= 20000.0
             #20000 because earth's radius is 20015km
@@ -141,7 +141,9 @@ def main():
 
             theta = PAgent.act(agent_state)
 
-            next_state, reward, done = env.step(theta)
+            next_state, reward, done = env.step(theta, radial_weather, dist_to_goal, weather) #i think i need to input weather AT THAT POINT to so that
+            #the ship goes with the wind direction, but maybe it might not be that important...?
+
             trajectory.append(env.ship_position)
 
             print(
@@ -176,7 +178,10 @@ def main():
         print("New ship:", env.ship_position)
         print("New goal:", env.goal_position)
 
+        #calculate reward
+
         print("Updating agent...")
+        #backprop after every episode
 
         #agent.update(actions, rewards)
 

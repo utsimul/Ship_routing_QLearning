@@ -1,4 +1,5 @@
 import numpy as np
+from Helpers import *
 
 
 class OceanEnvironment:
@@ -49,7 +50,7 @@ class OceanEnvironment:
         return i, j
 
 
-    def step(self, theta):
+    def step(self, theta, weather, dist_to_goal, weather_simulator):
 
         lat, lon = self.ship_position
         print("taking action in direction: ", theta)
@@ -96,9 +97,72 @@ class OceanEnvironment:
 
                 reward = -1
                 done = False
+        
 
         self.ship_position = (new_lat, new_lon)
-        print("updated ship position")
+
+        #---------------CALCULATE REWARDS FROM NEW POSITION -----------------
+        
+        new_dist_to_goal = geodesic_distance(
+            new_lat,
+            new_lon,
+            self.goal_position[0],
+            self.goal_position[1]
+        )
+    
+        distance_reward = dist_to_goal - new_dist_to_goal
+        distance_reward /= 100.0 #normalize?
+
+        #weather reward
+        weather_data = weather_simulator.get_weather_at_lat_lon(
+            new_lat,
+            new_lon
+        )
+
+        wind_speed = weather_data["speed"]
+
+        wind_direction = np.radians(
+            weather_data["direction"]
+        )
+
+        # ship heading unit vector
+        ship_dx = np.cos(theta)
+        ship_dy = np.sin(theta)
+
+        # wind unit vector
+        wind_dx = np.cos(wind_direction)
+        wind_dy = np.sin(wind_direction)
+
+        # dot product
+        alignment = (
+            ship_dx * wind_dx +
+            ship_dy * wind_dy
+        )
+
+        # numerical safety
+        alignment = np.clip(alignment, -1.0, 1.0)
+
+        weather_cost = (
+            wind_speed *
+            (1.0 - alignment)
+        )
+
+        # normalize
+        weather_cost /= 20.0
+
+        reward = (
+            distance_reward
+            - 0.25 * weather_cost
+        )
+
+        # goal bonus
+        if new_dist_to_goal < 25:
+            reward += 100.0
+            done = True
+        else:
+            done = False
+
+        print("updated ship position and calculated reward: " , reward)
 
         return self.ship_position, reward, done
 
