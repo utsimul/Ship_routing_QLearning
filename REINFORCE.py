@@ -69,10 +69,12 @@ def main():
 
 
     for episode in range(NUM_EPISODES):
+        
         step_counter = 0
         trajectory = [env.ship_position]
         actions = []
         rewards = []
+        log_probs = []
 
         state = env.reset()
         start_position = env.ship_position
@@ -139,10 +141,13 @@ def main():
             #print("agent state min and max: ",np.min(agent_state), np.max(agent_state))
             #print(agent_state[:10])
 
-            theta = PAgent.act(agent_state)
+            theta, log_prob = PAgent.act(agent_state)
 
             next_state, reward, done = env.step(theta, radial_weather, dist_to_goal, weather) #i think i need to input weather AT THAT POINT to so that
             #the ship goes with the wind direction, but maybe it might not be that important...?
+            rewards.append(reward)
+            log_probs.append(log_prob)
+
 
             trajectory.append(env.ship_position)
 
@@ -164,6 +169,12 @@ def main():
             # weather.update()
         
         print("Episode finished")
+
+        #backward pass
+        PAgent.update(
+            rewards,
+            log_probs
+        )
 
         plot_episode(
             world,
