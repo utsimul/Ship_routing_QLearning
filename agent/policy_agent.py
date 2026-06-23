@@ -1,10 +1,12 @@
 
 # make an update function for backprop
 
+from shapely import distance
 import torch
 import torch.nn as nn
 import numpy as np
 from torch.distributions import Normal
+from Helpers import *
 
 
 
@@ -46,7 +48,7 @@ class PolicyAgent:
             lr=1e-4
         )
 
-    def act(self, state):
+    def act(self, state, goal_direction, distance):
 
         state = torch.tensor(
             state,
@@ -57,6 +59,9 @@ class PolicyAgent:
 
         sigma = torch.exp(log_sigma)
 
+        # less exploration near goal
+        #sigma *= min(distance / 200.0, 1.0)
+
         dist = Normal(mean_theta, sigma)
 
         raw_theta = dist.sample()
@@ -64,6 +69,7 @@ class PolicyAgent:
         log_prob = dist.log_prob(raw_theta)
 
         theta = np.pi * torch.tanh(raw_theta)
+        theta += goal_direction
 
         print(
             "mean=", mean_theta.item(),
