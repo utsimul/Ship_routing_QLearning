@@ -11,7 +11,7 @@ import numpy as np
 from weather_repr.radial_snapshot import get_radial_weather
 
 
-def plot_weather(world):
+def Plot_weather(world):
 
     land = gpd.read_file("ne_50m_land/ne_50m_land.shp")
 
@@ -54,7 +54,9 @@ def plot_weather(world):
     ax.set_ylabel("Latitude")
     ax.set_title("Weather Simulation")
 
-    plt.show()
+    print("Weather plot generated")
+
+    return fig
 
 def visualize_vector_field(level, scale):
     """

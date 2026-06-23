@@ -58,9 +58,9 @@ def bearing_to_goal(lat1, lon1, lat2, lon2):
 
 def plot_episode(world, env, trajectory):
 
-    plt.figure(figsize=(14, 7))
+    fig, ax = plt.subplots(figsize=(14, 7))
 
-    plt.imshow(
+    ax.imshow(
         world.land_mask,
         origin="lower",
         extent=[
@@ -76,14 +76,14 @@ def plot_episode(world, env, trajectory):
     lats = [p[0] for p in trajectory]
     lons = [p[1] for p in trajectory]
 
-    plt.plot(
+    ax.plot(
         lons,
         lats,
         linewidth=2,
         label="Ship Path"
     )
 
-    plt.scatter(
+    ax.scatter(
         lons[0],
         lats[0],
         s=150,
@@ -91,7 +91,7 @@ def plot_episode(world, env, trajectory):
         label="Start"
     )
 
-    plt.scatter(
+    ax.scatter(
         lons[-1],
         lats[-1],
         s=150,
@@ -101,7 +101,7 @@ def plot_episode(world, env, trajectory):
 
     goal_lat, goal_lon = env.goal_position
 
-    plt.scatter(
+    ax.scatter(
         goal_lon,
         goal_lat,
         s=200,
@@ -109,10 +109,10 @@ def plot_episode(world, env, trajectory):
         label="Goal"
     )
 
-    plt.xlabel("Longitude")
-    plt.ylabel("Latitude")
-    plt.title("Agent Trajectory")
-    plt.legend()
-    plt.grid(True)
+    ax.set_xlabel("Longitude")
+    ax.set_ylabel("Latitude")
+    ax.set_title("Agent Trajectory")
+    ax.legend()
+    ax.grid(True)
 
-    plt.show()
+    return fig

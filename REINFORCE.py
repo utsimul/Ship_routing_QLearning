@@ -9,6 +9,7 @@ from environment.land_mask import LandMask
 from environment.ocean_env import OceanEnvironment
 from weather.weather_simulator import WeatherSimulator
 
+from weather_repr.plot_weather import *
 from weather_repr.radial_snapshot import get_radial_weather
 
 from agent.random_agent import RandomAgent 
@@ -52,6 +53,10 @@ def main():
     weather.update()
 
     print("Weather initialized")
+
+    fig = Plot_weather(world)
+    plt.savefig("plots/weather_initial.png", dpi=300, bbox_inches="tight")
+    plt.close()
 
 
     env = OceanEnvironment(world)
@@ -199,11 +204,15 @@ def main():
         )
 
         if episode % 29 == 0:
-            plot_episode(
+            fig = plot_episode(
                 world,
                 env,
                 trajectory
             )
+            plt.savefig(f"plots/episode_{episode}.png",
+                dpi=300,
+                bbox_inches="tight")
+            plt.close()
         
         trajectories.append(trajectory)
 
