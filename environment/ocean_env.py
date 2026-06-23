@@ -1,5 +1,8 @@
 import numpy as np
 from Helpers import *
+from colorama import Fore, Back, Style, init
+
+init(autoreset=True)
 
 
 class OceanEnvironment:
@@ -20,10 +23,8 @@ class OceanEnvironment:
         self.goal = ocean_cells[np.random.choice(len(ocean_cells))]
 
 
-    def reset(self):
+    def reset(self, start_lat, start_lon, goal_lat, goal_lon):
 
-        start_lat, start_lon = self.world.get_coordinates(*self.start)
-        goal_lat, goal_lon = self.world.get_coordinates(*self.goal)
 
         self.ship_position = (start_lat, start_lon)
         self.goal_position = (goal_lat, goal_lon)
@@ -53,7 +54,7 @@ class OceanEnvironment:
     def step(self, theta, weather, dist_to_goal, weather_simulator):
 
         lat, lon = self.ship_position
-        print("taking action in direction: ", theta)
+        #print(Fore.BLUE + "taking action in direction: " + str(theta) + Fore.RESET)
 
         # action now yields continuous values of theta that the ship moves in -> also we assume 
         # that the distance the ship should move in is part of the state (like the agent can't decide that)
@@ -63,19 +64,31 @@ class OceanEnvironment:
         new_lat = lat + self.lat_step * np.cos(theta)
         new_lon = lon + self.lon_step * np.sin(theta)
 
-        print("BEFORE CLIPPING: ", new_lat, new_lon)
 
-        # keep inside bounds
-        new_lat = np.clip(new_lat, self.world.lat_min, self.world.lat_max)
-        new_lon = np.clip(new_lon, self.world.lon_min, self.world.lon_max)
-        print("AFTER CLIPPING: ", new_lat, new_lon)
+        # latitude does not wrap on Earth
+        new_lat = np.clip(
+            new_lat,
+            self.world.lat_min,
+            self.world.lat_max
+        )
+
+        # longitude wraps around the globe
+        lon_range = (
+            self.world.lon_max -
+            self.world.lon_min
+        )
+
+        new_lon = (
+            (new_lon - self.world.lon_min)
+            % lon_range
+        ) + self.world.lon_min
 
         grid_i, grid_j = self.latlon_to_grid(new_lat, new_lon)
 
         # check land collision
         if self.world.land_mask[grid_i, grid_j] == 1:
 
-            reward = -10
+            reward = -100 #increasing this to -100 did make the agent not to collide at the end.
             done = False
 
             print("land collision at: ", (new_lat, new_lon))
@@ -90,13 +103,8 @@ class OceanEnvironment:
 
             if goal_dist < self.world.resolution:
 
-                reward = 100
                 done = True
 
-            else:
-
-                reward = -1
-                done = False
         
 
         self.ship_position = (new_lat, new_lon)
@@ -150,13 +158,18 @@ class OceanEnvironment:
         # normalize
         weather_cost /= 20.0
 
+        #print("distance reward: ", distance_reward)
+        #print("weather cost: ", weather_cost)
+
         reward = (
             distance_reward
             - 0.25 * weather_cost
         )
 
+        print("reward: ", reward)
+
         # goal bonus
-        if new_dist_to_goal < 25:
+        if new_dist_to_goal < self.world.resolution:
             reward += 100.0
             done = True
         else:

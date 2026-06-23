@@ -7,6 +7,7 @@ import numpy as np
 from torch.distributions import Normal
 
 
+
 class PolicyNetwork(nn.Module):
 
     def __init__(self, input_dim):
@@ -63,6 +64,11 @@ class PolicyAgent:
         log_prob = dist.log_prob(raw_theta)
 
         theta = np.pi * torch.tanh(raw_theta)
+
+        print(
+            "mean=", mean_theta.item(),
+            "sigma=", sigma.item()
+        )
 
         return theta.item(), log_prob
     
@@ -127,4 +133,3 @@ class PolicyNetwork2(nn.Module):
 
         return mean, log_std
 
-    
