@@ -21,8 +21,77 @@ from Helpers import *
 
 EARTH_RADIUS_KM = 6371.0
 
-START_POS = (20.0, -50.0)
-GOAL_POS  = (35.0, -20.0)
+# Coordinate Test Set
+
+TEST_ROUTES = [
+
+    # Short route
+    {
+        "name": "short_1",
+        "start": (20.0, -50.0),
+        "goal":  (35.0, -20.0)
+    },
+
+    # Medium routes
+    {
+        "name": "medium_1",
+        "start": (10.0, -80.0),
+        "goal":  (40.0, -30.0)
+    },
+
+    {
+        "name": "medium_2",
+        "start": (-20.0, 120.0),
+        "goal":  (15.0, 160.0)
+    },
+
+    # Long routes
+    {
+        "name": "long_1",
+        "start": (-40.0, -150.0),
+        "goal":  (40.0, -20.0)
+    },
+
+    {
+        "name": "long_2",
+        "start": (50.0, -170.0),
+        "goal":  (-30.0, 100.0)
+    },
+
+    # Equatorial crossing
+    {
+        "name": "equator_crossing",
+        "start": (-25.0, -60.0),
+        "goal":  (25.0, -20.0)
+    },
+
+    # Dateline crossing
+    {
+        "name": "dateline_crossing",
+        "start": (10.0, 170.0),
+        "goal":  (15.0, -170.0)
+    },
+
+    # Northern hemisphere
+    {
+        "name": "north_1",
+        "start": (45.0, -70.0),
+        "goal":  (60.0, 20.0)
+    },
+
+    # Southern hemisphere
+    {
+        "name": "south_1",
+        "start": (-50.0, 30.0),
+        "goal":  (-20.0, 120.0)
+    }
+]
+
+i = 4
+
+START_POS = TEST_ROUTES[i]["start"]
+GOAL_POS  = TEST_ROUTES[i]["goal"]
+
 
 def main():
 
@@ -74,7 +143,7 @@ def main():
 
 
     NUM_STEPS = 2000
-    NUM_EPISODES = 30
+    NUM_EPISODES = 100
     trajectories = []
     
 
@@ -161,7 +230,7 @@ def main():
             #print("agent state min and max: ",np.min(agent_state), np.max(agent_state))
             #print(agent_state[:10])
 
-            theta, log_prob = PAgent.act(agent_state)
+            theta, log_prob = PAgent.act(agent_state, goal_direction, dist_to_goal) #multiply by 20000 to get actual distance in km for exploration scaling
 
             #theta = goal_direction
 
