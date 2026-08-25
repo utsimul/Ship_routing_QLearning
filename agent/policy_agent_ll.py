@@ -158,7 +158,7 @@ class PolicyAgent:
             torch.tanh(raw_action)
         )
 
-        theta = theta + goal_direction
+        theta = 0.5*theta + goal_direction
 
         theta = (
             theta + np.pi
