@@ -8,7 +8,7 @@ from environment.ocean_env import OceanEnvironment
 from weather.weather_simulator import WeatherSimulator
 
 from weather_repr.plot_weather import *
-from weather_repr.radial_snapshot import get_radial_weather
+from weather_repr.radial_snapshot import get_radial_weather, get_radial_land
 
 from agent.policy_agent_ll import PolicyAgent
 
@@ -52,7 +52,7 @@ TRAIN_ROUTES = [
 
     {
         "name": "equator_crossing",
-        "start": (-25.0, -60.0),
+        "start": (-25.0, -80.0),
         "goal":  (25.0, -20.0)
     },
 
@@ -64,7 +64,7 @@ TRAIN_ROUTES = [
 
     {
         "name": "north_1",
-        "start": (45.0, -70.0),
+        "start": (40.0, -62.0),
         "goal":  (60.0, 20.0)
     },
 
@@ -148,6 +148,14 @@ def construct_state(
         ship_lon
     )
 
+    radial_land = get_radial_land(
+        world,
+        ship_lat,
+        ship_lon,
+        goal_lat,
+        goal_lon
+    )
+
 
     dist_to_goal = geodesic_distance(
         ship_lat,
@@ -179,12 +187,13 @@ def construct_state(
 
     agent_state = np.concatenate([
         radial_weather.flatten(),
+        radial_land.flatten(),
 
         np.array([
             dist_to_goal_normalized,
             dist_from_start_normalized,
 
-            np.sin(goal_direction),
+            np.sin(goal_direction), #GOAL DIRECTION IS ALREADY GIVEN TO THE MODEL AS INPUT
             np.cos(goal_direction)
         ])
     ])
@@ -193,6 +202,7 @@ def construct_state(
     return (
         agent_state,
         radial_weather,
+        radial_land,
         goal_direction,
         dist_to_goal_normalized
     )
@@ -221,7 +231,7 @@ def main():
     print("World shape:", world.shape())
 
 
-    PAgent = PolicyAgent(688)
+    PAgent = PolicyAgent(802) #I printed this this is the input dimension generated 
 
     print("Policy agent initialized.")
 
@@ -347,6 +357,7 @@ def main():
                 (
                     agent_state,
                     radial_weather,
+                    radial_land,
                     goal_direction,
                     dist_to_goal
                 ) = construct_state(
@@ -354,6 +365,10 @@ def main():
                     env,
                     start_position
                 )
+
+                input_dim = len(agent_state)
+
+                print("Policy input dimension:", input_dim)
 
 
                 (
@@ -446,6 +461,7 @@ def main():
 
                 (
                     next_agent_state,
+                    _,
                     _,
                     _,
                     _
@@ -565,14 +581,11 @@ def main():
             )
 
 
-        if update % 10 == 0:
+        if update % 10 == 0 or update == NUM_UPDATES - 1:
 
-            for journey_id in range(
-                min(3, NUM_JOURNEYS)
-            ):
+            for journey_id, route in enumerate(TRAIN_ROUTES):
 
                 env = environments[journey_id]
-
                 trajectory = all_trajectories[journey_id]
 
                 fig = plot_episode(
@@ -584,7 +597,8 @@ def main():
                 plt.savefig(
                     f"plots/"
                     f"update_{update}_"
-                    f"journey_{journey_id}.png",
+                    f"journey_{journey_id}_"
+                    f"{route['name']}.png",
                     dpi=300,
                     bbox_inches="tight"
                 )
