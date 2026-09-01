@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+import json
 
 from environment.world_generator import WorldGrid
 from environment.land_mask import LandMask
@@ -17,63 +18,20 @@ from Helpers import *
 
 EARTH_RADIUS_KM = 6371.0
 
+def load_training_routes(filename="training_routes.json"):
 
-TRAIN_ROUTES = [
+    with open(filename, "r") as f:
+        routes = json.load(f)
 
-    {
-        "name": "short_1",
-        "start": (20.0, -50.0),
-        "goal":  (35.0, -20.0)
-    },
+    # Convert JSON lists back to tuples
+    for route in routes:
 
-    {
-        "name": "medium_1",
-        "start": (10.0, -80.0),
-        "goal":  (40.0, -30.0)
-    },
+        route["start"] = tuple(route["start"])
+        route["goal"] = tuple(route["goal"])
 
-    {
-        "name": "medium_2",
-        "start": (-20.0, 120.0),
-        "goal":  (15.0, 160.0)
-    },
+    return routes
 
-    {
-        "name": "long_1",
-        "start": (-40.0, -150.0),
-        "goal":  (40.0, -20.0)
-    },
 
-    {
-        "name": "long_2",
-        "start": (50.0, -170.0),
-        "goal":  (-30.0, 100.0)
-    },
-
-    {
-        "name": "equator_crossing",
-        "start": (-25.0, -80.0),
-        "goal":  (25.0, -20.0)
-    },
-
-    {
-        "name": "dateline_crossing",
-        "start": (10.0, 170.0),
-        "goal":  (15.0, -170.0)
-    },
-
-    {
-        "name": "north_1",
-        "start": (40.0, -62.0),
-        "goal":  (60.0, 20.0)
-    },
-
-    {
-        "name": "south_1",
-        "start": (-50.0, 30.0),
-        "goal":  (-20.0, 120.0)
-    }
-]
 
 
 def calculate_gae(
@@ -209,6 +167,10 @@ def construct_state(
 
 
 def main():
+
+    TRAIN_ROUTES = load_training_routes(
+        "training_routes.json"
+    )
 
     NUM_JOURNEYS = len(TRAIN_ROUTES)
 
@@ -453,7 +415,7 @@ def main():
             if buffer["dones"][-1]:
 
 
-                next_value = 0.0
+                next_value = 100.0
 
             else:
 
