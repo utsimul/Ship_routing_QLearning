@@ -198,7 +198,7 @@ The clipped objective is:
 
 $$
 L_t^{CLIP,2}=
-\operatorname{clip}
+{clip}
 \left(
 r_t(\theta),
 1-\epsilon,
@@ -217,7 +217,7 @@ L^{CLIP}=
 \min
 \left(
 r_t(\theta)\hat{A}_t,
-\operatorname{clip}
+{clip}
 (r_t(\theta),1-\epsilon,1+\epsilon)
 \hat{A}_t
 \right)
