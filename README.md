@@ -80,9 +80,7 @@ $$
 The raw action is transformed into a valid angular heading using a hyperbolic tangent:
 
 $$
-\theta_t^{base}
-=
-\pi\tanh(a_t^{raw})
+\theta_t^{base} = \pi\tanh(a_t^{raw})
 $$
 
 This constrains the base heading to:
@@ -94,22 +92,13 @@ $$
 The angle is then wrapped to the interval \([-\pi,\pi)\):
 
 $$
-\theta_t^{wrapped}
-=
-(\theta_t^{base}+\pi)
-\bmod(2\pi)-\pi
+\theta_t^{wrapped} = (\theta_t^{base}+\pi) \bmod(2\pi)-\pi
 $$
 
 Finally, the goal direction is incorporated as a directional bias:
 
 $$
-\boxed{
-\theta_t
-=
-\theta_t^{wrapped}
-+
-0.5\,d_t^{goal}
-}
+\boxed{\theta_t = \theta_t^{wrapped} + 0.5\,d_t^{goal} }
 $$
 
 where \(d_t^{goal}\) represents the direction from the ship toward the destination.
@@ -148,8 +137,7 @@ After collecting a rollout, the policy and value networks are updated using PPO.
 The calculated advantages are normalized across the collected samples:
 
 $$
-\hat{A}_t
-=
+\hat{A}_t =
 \frac{A_t-\mu_A}
 {\sigma_A+\epsilon}
 $$
@@ -173,8 +161,7 @@ $$
 The probability ratio between the new and old policies is:
 
 $$
-r_t(\theta)
-=
+r_t(\theta) =
 \frac{
 \pi_\theta(a_t|s_t)
 }{
@@ -186,8 +173,7 @@ In implementation, this is computed in log-space:
 
 $$
 \boxed{
-r_t(\theta)
-=
+r_t(\theta)=
 \exp
 \left(
 \log\pi_\theta(a_t|s_t)
@@ -204,16 +190,14 @@ PPO prevents excessively large policy updates by clipping the probability ratio.
 The unclipped objective is:
 
 $$
-L_t^{CLIP,1}
-=
+L_t^{CLIP,1}=
 r_t(\theta)\hat{A}_t
 $$
 
 The clipped objective is:
 
 $$
-L_t^{CLIP,2}
-=
+L_t^{CLIP,2}=
 \operatorname{clip}
 \left(
 r_t(\theta),
@@ -227,8 +211,7 @@ The PPO policy objective is:
 
 $$
 \boxed{
-L^{CLIP}
-=
+L^{CLIP}=
 \mathbb{E}_t
 \left[
 \min
@@ -245,8 +228,7 @@ $$
 Since PyTorch optimizers minimize losses, the implementation uses the negative of this objective:
 
 $$
-L_{policy}
-=
+L_{policy}=
 -L^{CLIP}
 $$
 
@@ -272,8 +254,7 @@ using mean squared error:
 
 $$
 \boxed{
-L_{value}
-=
+L_{value}=
 \mathbb{E}_t
 \left[
 (R_t-V_\phi(s_t))^2
@@ -288,8 +269,7 @@ $$
 The entropy of the Gaussian policy distribution is calculated as:
 
 $$
-H(\pi_\theta)
-=
+H(\pi_\theta)=
 -\mathbb{E}
 \left[
 \log\pi_\theta(a_t|s_t)
@@ -302,12 +282,9 @@ The total PPO loss combines the policy loss, value loss, and entropy regularizat
 
 $$
 \boxed{
-L_{total}
-=
-L_{policy}
-+
-c_vL_{value}
--
+L_{total}=
+L_{policy} +
+c_vL_{value}-
 c_HH
 }
 $$
@@ -332,12 +309,9 @@ For each timestep \(t\), the temporal-difference error is:
 
 $$
 \boxed{
-\delta_t
-=
-r_t
-+
-\gamma V(s_{t+1})(1-d_t)
--
+\delta_t=
+r_t +
+\gamma V(s_{t+1})(1-d_t) -
 V(s_t)
 }
 $$
@@ -364,10 +338,8 @@ Starting from the end of the trajectory, GAE is calculated recursively:
 
 $$
 \boxed{
-A_t
-=
-\delta_t
-+
+A_t=
+\delta_t+
 \gamma\lambda(1-d_t)A_{t+1}
 }
 $$
