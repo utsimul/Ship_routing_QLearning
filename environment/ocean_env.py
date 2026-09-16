@@ -119,6 +119,7 @@ class OceanEnvironment:
         )
     
         distance_reward = dist_to_goal - new_dist_to_goal
+        # distance_reward = new_dist_to_goal
         distance_reward /= 100.0 #normalize?
 
         #weather reward
@@ -163,14 +164,14 @@ class OceanEnvironment:
 
         reward = (
             distance_reward
-            - 0.25 * weather_cost
+            #- 0.25 * weather_cost
         )
 
         print("reward: ", reward)
 
         # goal bonus
         if new_dist_to_goal < self.world.resolution:
-            reward += 100.0
+            reward += 10000.0
             done = True
         else:
             done = False

@@ -169,7 +169,7 @@ def construct_state(
 def main():
 
     TRAIN_ROUTES = load_training_routes(
-        "training_routes.json"
+        "train_routes_selected.json"
     )
 
     NUM_JOURNEYS = len(TRAIN_ROUTES)
