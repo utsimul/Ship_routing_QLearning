@@ -1,0 +1,132 @@
+[
+    {
+        "name": "sea_coast_18",
+        "type": "sea_coast",
+        "start": [
+            13.0,
+            -95.0
+        ],
+        "goal": [
+            -72.0,
+            -13.0
+        ]
+    },
+
+    {
+        "name": "sea_sea_11",
+        "type": "sea_sea",
+        "start": [
+            25.0,
+            -146.0
+        ],
+        "goal": [
+            -28.0,
+            -129.0
+        ]
+    },
+
+    {
+        "name": "sea_sea_6",
+        "type": "sea_sea",
+        "start": [
+            -66.0,
+            179.0
+        ],
+        "goal": [
+            -66.0,
+            -18.0
+        ]
+    },
+
+    {
+        "name": "sea_sea_13",
+        "type": "sea_sea",
+        "start": [
+            -75.0,
+            168.0
+        ],
+        "goal": [
+            -41.0,
+            -162.0
+        ]
+    },
+
+    {
+        "name": "coast_coast_60",
+        "type": "coast_coast",
+        "start": [
+            40.0,
+            -73.0
+        ],
+        "goal": [
+            79.0,
+            51.0
+        ]
+    },
+
+    {
+        "name": "coast_coast_53",
+        "type": "coast_coast",
+        "start": [
+            35.0,
+            129.0
+        ],
+        "goal": [
+            -7.0,
+            137.0
+        ]
+    },
+
+    {
+        "name": "coast_sea_37",
+        "type": "coast_sea",
+        "start": [
+            -34.0,
+            25.0
+        ],
+        "goal": [
+            40.0,
+            -66.0
+        ]
+    },
+
+    {
+        "name": "sea_sea_10",
+        "type": "sea_sea",
+        "start": [
+            -33.0,
+            -141.0
+        ],
+        "goal": [
+            81.0,
+            84.0
+        ]
+    },
+
+    {
+        "name": "sea_sea_4",
+        "type": "sea_sea",
+        "start": [
+            -52.0,
+            -151.0
+        ],
+        "goal": [
+            81.0,
+            122.0
+        ]
+    },
+
+    {
+        "name": "coast_sea_42",
+        "type": "coast_sea",
+        "start": [
+            20.0,
+            -78.0
+        ],
+        "goal": [
+            19.0,
+            -113.0
+        ]
+    }
+
+]
