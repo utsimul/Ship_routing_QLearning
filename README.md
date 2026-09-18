@@ -137,14 +137,10 @@ where \(W_t^{radial}\) represents the local weather surrounding the ship and \(\
 
 Instead of providing the complete global weather grid to the neural network, weather is sampled around the current ship position.
 
-For a set of predefined radii \(r_1,r_2,\ldots,r_n\), weather information is collected at multiple points surrounding the ship:
+For a set of predefined radii $\(r_1,r_2,\ldots,r_n\)$, weather information is collected at multiple points surrounding the ship:
 
 $$
-W_t^{radial}
-=
-\{
-W(p_1),W(p_2),\ldots,W(p_N)
-\}
+W_t^{radial} = \{W(p_1),W(p_2),\ldots,W(p_N)\}
 $$
 
 Each sampled point contains local weather information such as wind speed and wind direction.
@@ -154,7 +150,7 @@ The resulting radial representation is flattened before being passed to the poli
 $$
 W_t^{radial}
 \rightarrow
-\operatorname{flatten}(W_t^{radial})
+{flatten}(W_t^{radial})
 $$
 
 This gives the agent a localized view of the weather around its current position.
@@ -182,9 +178,7 @@ be the destination.
 The geodesic distance is:
 
 $$
-d_t^{goal}
-=
-D(P_t,G)
+d_t^{goal}=D(P_t,G)
 $$
 
 where \(D(\cdot,\cdot)\) represents the Earth's surface distance.
@@ -193,9 +187,7 @@ The distance is normalized before being provided to the agent:
 
 $$
 \boxed{
-\tilde d_t^{goal}
-=
-\frac{d_t^{goal}}{20000}
+\tilde d_t^{goal}=\frac{d_t^{goal}}{20000}
 }
 $$
 
@@ -218,18 +210,14 @@ be the fixed starting point.
 Then:
 
 $$
-d_t^{start}
-=
-D(S,P_t)
+d_t^{start}=D(S,P_t)
 $$
 
 and the normalized value is:
 
 $$
 \boxed{
-\tilde d_t^{start}
-=
-\frac{d_t^{start}}{20000}
+\tilde d_t^{start}=\frac{d_t^{start}}{20000}
 }
 $$
 
@@ -245,46 +233,26 @@ Including both distances allows the agent to distinguish between:
 The direction from the ship toward the destination is represented by a bearing:
 
 $$
-\beta_t
-=
-\operatorname{Bearing}(P_t,G)
+\beta_t=\operatorname{Bearing}(P_t,G)
 $$
 
 Because angular values wrap around at \(2\pi\), directly providing the angle can introduce a discontinuity.
 
 For example:
 
-$$
-359^\circ
-\approx
-0^\circ
-$$
+$$359^\circ\approx0^\circ$$
 
 but numerically these values appear far apart.
 
 To avoid this problem, the bearing is encoded using sine and cosine:
 
-$$
-\boxed{
-b_t^{sin}=\sin(\beta_t)
-}
-$$
+$$\boxed{b_t^{sin}=\sin(\beta_t)}$$
 
-$$
-\boxed{
-b_t^{cos}=\cos(\beta_t)
-}
-$$
+$$\boxed{b_t^{cos}=\cos(\beta_t)}$$
 
 Therefore, the direction component of the state is:
 
-$$
-B_t=
-[
-\sin(\beta_t),
-\cos(\beta_t)
-]
-$$
+$$B_t=[\sin(\beta_t),\cos(\beta_t)]$$
 
 This provides a continuous representation of direction.
 
@@ -294,18 +262,7 @@ This provides a continuous representation of direction.
 
 The final state provided to the policy is:
 
-$$
-\boxed{
-s_t=
-[
-\operatorname{flatten}(W_t^{radial}),
-\tilde d_t^{goal},
-\tilde d_t^{start},
-\sin(\beta_t),
-\cos(\beta_t)
-]
-}
-$$
+$$\boxed{s_t=[{flatten}(W_t^{radial}),\tilde d_t^{goal},\tilde d_t^{start},\si(\beta_t),\cos(\beta_t)]}$$
 
 Thus, the agent receives both **local environmental information** and **global positional information**.
 
@@ -313,39 +270,23 @@ Thus, the agent receives both **local environmental information** and **global p
 
 The policy receives the state:
 
-$$
-s_t
-$$
+$s_t$
 
 and produces a continuous heading action:
 
-$$
-a_t \sim \pi_\theta(a|s_t)
-$$
+$$a_t \sim \pi_\theta(a|s_t)$$
 
 The raw action is transformed into a heading angle:
 
-$$
-\theta_t^{base}
-=
-\pi\tanh(a_t)
-$$
+$$\theta_t^{base}=\pi\tanh(a_t)$$
 
 The heading is then combined with the goal direction to bias movement toward the destination:
 
-$$
-\boxed{
-\theta_t
-=
-\theta_t^{base}
-+
-0.5\beta_t
-}
-$$
+$$\boxed{\theta_t=\theta_t^{base}+0.5\beta_t}$$
 
-where \(\beta_t\) is the current bearing toward the goal.
+where $\(\beta_t\)$ is the current bearing toward the goal.
 
-The resulting \(\theta_t\) is passed to the ocean environment, which determines the ship's next position.
+The resulting $\(\theta_t\)$ is passed to the ocean environment, which determines the ship's next position.
 
 ---
 
@@ -353,26 +294,17 @@ The resulting \(\theta_t\) is passed to the ocean environment, which determines 
 
 Given the current position:
 
-$$
-P_t=(\phi_t,\lambda_t)
-$$
+$$P_t=(\phi_t,\lambda_t)$$
 
 the ship moves according to its selected heading.
 
 For a predefined movement step \(\Delta\):
 
-$$
-\boxed{
-\phi_{t+1}
-=
-\phi_t+\Delta\cos(\theta_t)
-}
-$$
+$$\boxed{\phi_{t+1}=\phi_t+\Delta\cos(\theta_t)}$$
 
 $$
 \boxed{
-\lambda_{t+1}
-=
+\lambda_{t+1}=
 \lambda_t+\Delta\sin(\theta_t)
 }
 $$
@@ -382,8 +314,7 @@ Latitude is constrained to the valid geographic range, while longitude is wrappe
 The resulting position is:
 
 $$
-P_{t+1}
-=
+P_{t+1}=
 (\phi_{t+1},\lambda_{t+1})
 $$
 
@@ -403,11 +334,11 @@ $$
 
 where:
 
-* \(s_t\) = current state
-* \(a_t\) = selected heading
-* \(r_t\) = reward
-* \(s_{t+1}\) = resulting state
-* \(d_t\) = episode termination indicator
+* $\(s_t\)$ = current state
+* $\(a_t\)$ = selected heading
+* $\(r_t\)$ = reward
+* $\(s_{t+1}\)$ = resulting state
+* $\(d_t\)$ = episode termination indicator
 
 ### Land Collision
 
@@ -491,8 +422,7 @@ Then the distance-progress reward is:
 
 $$
 \boxed{
-r_t^{distance}
-=
+r_t^{distance}=
 d_t-d_{t+1}
 }
 $$
@@ -503,8 +433,7 @@ The reward is normalized:
 
 $$
 \boxed{
-\tilde r_t^{distance}
-=
+\tilde r_t^{distance}=
 \frac{d_t-d_{t+1}}{100}
 }
 $$
@@ -513,24 +442,20 @@ The intended reward structure can incorporate additional environmental costs:
 
 $$
 \boxed{
-r_t
-=
-r_t^{distance}
--
-\alpha C_t^{weather}
--
-\beta C_t^{collision}
-+
+r_t=
+r_t^{distance}-
+\alpha C_t^{weather}-
+\beta C_t^{collision}+
 R_{goal}
 }
 $$
 
 where:
 
-* \(C_t^{weather}\) = cost associated with unfavorable weather
-* \(C_t^{collision}\) = collision penalty
-* \(R_{goal}\) = destination completion bonus
-* \(\alpha,\beta\) = weighting coefficients
+* $\(C_t^{weather}\)$ = cost associated with unfavorable weather
+* $\(C_t^{collision}\)$ = collision penalty
+* $\(R_{goal}\)$ = destination completion bonus
+* $\(\alpha,\beta\)$ = weighting coefficients
 
 The current implementation primarily uses the distance-progress component together with the land-collision penalty and goal-completion bonus.
 
