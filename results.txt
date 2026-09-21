@@ -1,0 +1,22 @@
+Run 1:
+Collected 1280 transitions for PPO update (max possible 1280).
+PPO update | Policy Loss: 0.0760 | Value Loss: 0.0102 | Entropy: -1.1788
+Completed PPO update 300
+  goals reached this update : 9
+  timeouts this update      : 3
+  mean step reward          : +0.1051
+  mean progress (in-flight) : 34.4% of route
+  total goals / timeouts    : 2247 / 347
+----------------------------------------------------------------------
+
+Run 2 (independent):
+Collected 1280 transitions for PPO update (max possible 1280).
+PPO update | Policy Loss: 0.0760 | Value Loss: 0.0102 | Entropy: -1.1788
+Completed PPO update 300
+  goals reached this update : 9
+  timeouts this update      : 3
+  mean step reward          : +0.1051
+  mean progress (in-flight) : 34.4% of route
+  total goals / timeouts    : 2247 / 347
+  success rate this update  : 75% (9/12 finished episodes)
+----------------------------------------------------------------------
