@@ -233,7 +233,7 @@ Including both distances allows the agent to distinguish between:
 The direction from the ship toward the destination is represented by a bearing:
 
 $$
-\beta_t=\operatorname{Bearing}(P_t,G)
+\beta_t={Bearing}(P_t,G)
 $$
 
 Because angular values wrap around at \(2\pi\), directly providing the angle can introduce a discontinuity.
@@ -262,7 +262,7 @@ This provides a continuous representation of direction.
 
 The final state provided to the policy is:
 
-$$\boxed{s_t=[{flatten}(W_t^{radial}),\tilde d_t^{goal},\tilde d_t^{start},\si(\beta_t),\cos(\beta_t)]}$$
+$$\boxed{s_t=[{flatten}(W_t^{radial}),\tilde d_t^{goal},\tilde d_t^{start},\sin(\beta_t),\cos(\beta_t)]}$$
 
 Thus, the agent receives both **local environmental information** and **global positional information**.
 
