@@ -52,8 +52,8 @@ $$
 
 where:
 
-* \(\phi\) = latitude
-* \(\lambda\) = longitude
+* $\(\phi\)$ = latitude
+* $\(\lambda\)$ = longitude
 
 Multiple test routes are defined to evaluate the learned policy under different geographic conditions, including:
 
@@ -109,7 +109,7 @@ This allows the agent to adapt its route as weather conditions evolve.
 
 ## 3. State Construction
 
-At every timestep, a new state is constructed from three types of information:
+At every timestep, a new state is constructed from these types of information:
 
 1. Local radial weather information
 2. Distance to the destination
@@ -595,10 +595,10 @@ $$
 
 The function returns:
 
-* Selected heading \(\theta_t\)
-* Log probability \(\log\pi_\theta(a_t^{raw}|s_t)\)
-* State value \(V_\phi(s_t)\)
-* Raw action \(a_t^{raw}\)
+* Selected heading $\(\theta_t\)$
+* Log probability $\(\log\pi_\theta(a_t^{raw}|s_t)\)$
+* State value $\(V_\phi(s_t)\)$
+* Raw action $\(a_t^{raw}\)$
 
 ---
 
@@ -618,9 +618,9 @@ $$
 
 where:
 
-* \(\mu_A\) is the mean advantage
-* \(\sigma_A\) is the standard deviation of the advantages
-* \(\epsilon=10^{-8}\) provides numerical stability
+* $\(\mu_A\)$ is the mean advantage
+* $\(\sigma_A\)$ is the standard deviation of the advantages
+* $\(\epsilon=10^{-8}\)$ provides numerical stability
 
 This improves the stability of the policy update.
 
@@ -782,11 +782,11 @@ $$
 
 where:
 
-* \(r_t\) = reward at timestep \(t\)
-* \(V(s_t)\) = value estimate at timestep \(t\)
-* \(V(s_{t+1})\) = next-state value estimate
-* \(\gamma\) = discount factor
-* \(d_t\) = terminal indicator
+* $\(r_t\)$ = reward at timestep \(t\)
+* $\(V(s_t)\)$ = value estimate at timestep \(t\)
+* $\(V(s_{t+1})\)$ = next-state value estimate
+* $\(\gamma\)$ = discount factor
+* $\(d_t\)$ = terminal indicator
 
 The factor
 
@@ -810,9 +810,9 @@ $$
 
 where:
 
-* \(A_t\) = advantage estimate
-* \(\gamma\) = reward discount factor
-* \(\lambda\) = GAE smoothing parameter
+* $\(A_t\)$ = advantage estimate
+* $\(\gamma\)$ = reward discount factor
+* $\(\lambda\)$ = GAE smoothing parameter
 
 In the implementation:
 
@@ -906,9 +906,57 @@ $$
 
 where \(\theta\) represents the actor parameters and \(\phi\) represents the critic parameters.
 
-##### Key issues with this approach:
-the experiment improves upon the original `reinforce.py` because it introduces learning through multiple journeys at the same time. However, the agent is not able to learn at a proper pace, perhaps because all the journeys are of varying difficulty. 
+## RESULTS
+While `REINFORCE.py` did not manage to train the model so well because there was a crucial drawback, `parallel_journey.py` managed to train the agent. At the end of the training, the agent was able to complete 9/12 journeys (300 episodes). The detailed summary is provided in `results.txt`. While this isn't perfect, it proves that this approach has the potential to work significantly more if we use more approaches such as **curriculum learning** or adding milestone based rewards which will encourage the agent to complete more journeys. 
+I have plotted the exact paths that the agent has taken for these different joureys.
 
-### 2. PJ_CURRICULUM.py
+### The 9/12 journeys that are completed:
 
+#### Journey 0 - Sea coast 18
+ Start: (13.0, -95.0) | Goal: (-72.0, -13.0)
+![alt text](final_plots/update_299_journey_0_sea_coast_18_goal.png)
+
+
+#### Journey 1 - Sea Sea 11
+ Start: (25.0, -146.0) | Goal: (-28.0, -129.0)
+![alt text](final_plots/update_299_journey_1_sea_sea_11_goal.png)
+
+
+#### Journey 2 - Sea Sea 6
+Start: (-66.0, 179.0) | Goal: (-66.0, -18.0)
+![alt text](final_plots/update_299_journey_2_sea_sea_6_goal.png)
+
+
+#### Journey 3 - Sea Sea 13
+Start: (-75.0, 168.0) | Goal: (-41.0, -162.0)
+![alt text](final_plots/update_299_journey_3_sea_sea_13_goal.png)
+
+#### Journey 4 - Coast Coast 60
+Start: (40.0, -73.0) | Goal: (79.0, 51.0)
+![alt text](final_plots/update_299_journey_4_coast_coast_60_goal.png)
+
+#### Journey 5 - Coast Coast 53
+Start: (35.0, 129.0) | Goal: (-7.0, 137.0)
+![alt text](final_plots/update_299_journey_5_coast_coast_53_goal.png)
+
+
+#### Journey 6 - Coast Sea 37
+Start: (-34.0, 25.0) | Goal: (40.0, -66.0)
+![alt text](final_plots/update_299_journey_6_coast_sea_37_goal.png)
+
+### The 3/12 journeys that couldn't be completed (timeout):
+
+#### Journey 7 - Sea Sea 10
+Start: (-33.0, -141.0) | Goal: (81.0, 84.0)
+![alt text](final_plots/update_299_journey_7_sea_sea_10_timeout.png)
+
+
+#### Journey 8 - Sea Sea 4
+Start: (-52.0, -151.0) | Goal: (81.0, 122.0)
+![alt text](final_plots/update_299_journey_8_sea_sea_4_timeout.png)
+
+
+#### Journey 9 - Coast sea 42
+Start: (20.0, -78.0) | Goal: (19.0, -113.0)
+![alt text](final_plots/update_299_journey_9_coast_sea_42_timeout.png)
 
